@@ -68,4 +68,19 @@ class ClosureTableTreePathQueryBehavior extends Behavior
     {
         return $this->owner->andWhere(['child_level' => $childLevel]);
     }
+
+    /**
+     * Determines whether the node is child of the parent node.
+     *
+     * @param int $parentId
+     * @param int $childId
+     * @return ActiveQuery
+     */
+    public function isChildOf(int $parentId, int $childId): ActiveQuery
+    {
+        return $this->owner
+            ->byParentId($parentId)
+            ->byChildId($childId)
+            ->byNotChildId($parentId);
+    }
 }
