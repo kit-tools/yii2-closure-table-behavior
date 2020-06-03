@@ -2,7 +2,7 @@
 
 namespace kittools\closuretable\components\behaviors;
 
-use Exception;
+use kittools\closuretable\exceptions\LogicException;
 use kittools\closuretable\models\AbstractTreePath;
 use Yii;
 use yii\base\Behavior;
@@ -180,7 +180,7 @@ class ClosureTableBehavior extends Behavior
     /**
      * Verify owner before update.
      *
-     * @throws Exception
+     * @throws LogicException
      */
     public function beforeUpdate(): void
     {
@@ -188,7 +188,7 @@ class ClosureTableBehavior extends Behavior
 
         if ($this->owner->getAttribute($this->ownerParentIdAttribute) !== null) {
             if ($this->hasChilds()) {
-                throw new Exception('You cannot move a parent under a child');
+                throw new LogicException('You cannot move a parent under a child');
             }
         }
     }
@@ -209,12 +209,12 @@ class ClosureTableBehavior extends Behavior
     /**
      * Checking parent before deleting.
      *
-     * @throws Exception
+     * @throws LogicException
      */
     public function beforeDelete(): void
     {
         if ($this->owner::find()->childs($this->owner->id)->count()) {
-            throw new Exception('You can’t delete the owner, he has childs.');
+            throw new LogicException('You can’t delete the owner, he has childs.');
         }
     }
 

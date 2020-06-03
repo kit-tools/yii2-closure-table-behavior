@@ -2,6 +2,7 @@
 
 namespace kittools\closuretable\components\behaviors;
 
+use kittools\closuretable\exceptions\LogicException;
 use yii\base\Behavior;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
@@ -15,6 +16,19 @@ use yii\db\Expression;
  */
 class ClosureTableQueryBehavior extends Behavior
 {
+    /**
+     * Depth check.
+     *
+     * @param int|null $depth
+     * @throws LogicException
+     */
+    protected function depthCheck(?int $depth = null): void
+    {
+        if ($depth !== null && $depth < 0) {
+            throw new LogicException('Depth must be a positive number');
+        }
+    }
+
     /**
      * All childs to owner.
      *
@@ -38,6 +52,7 @@ class ClosureTableQueryBehavior extends Behavior
         }
 
         if ($depth !== null) {
+            $this->depthCheck($depth);
             /** @var self $subQuery */
             $subQuery = ($this->owner->modelClass::find())
                 ->select(new Expression('treePathsOwner.child_level + :depth', [':depth' => $depth]))
@@ -54,10 +69,11 @@ class ClosureTableQueryBehavior extends Behavior
      * All parents to owner.
      *
      * @param int $ownerId
-     * @param bool $withChild
+     * @param bool|false $withChild
      * @param int|null $depth
-     * @param bool $eagerLoading
+     * @param bool|false $eagerLoading
      * @return ActiveQuery
+     * @throws LogicException
      */
     public function parents(
         int $ownerId,
@@ -75,9 +91,15 @@ class ClosureTableQueryBehavior extends Behavior
         }
 
         if ($depth !== null) {
+            $this->depthCheck($depth);
             /** @var self $subQuery */
             $subQuery = ($this->owner->modelClass::find())
-                ->select(new Expression('treePathsOwner.child_level - :depth', [':depth' => $depth]))
+                ->select(
+                    new Expression(
+                        'IF(treePathsOwner.child_level <= :depth, 1, treePathsOwner.child_level - :depth)',
+                        [':depth' => $depth]
+                    )
+                )
                 ->owner($ownerId);
 
             $this->owner

@@ -3,10 +3,10 @@
 namespace tests\functional\components\behaviors;
 
 
+use kittools\closuretable\exceptions\LogicException;
 use tests\app\models\Menu;
 use tests\app\models\MenuTreePath;
 use tests\FunctionalTester;
-use yii\helpers\ArrayHelper;
 
 class ClosureTableQueryBehaviorCest
 {
@@ -57,23 +57,42 @@ class ClosureTableQueryBehaviorCest
 
         // withChild = true, depth = 1
         $parents = Menu::find()->parents($menu111->id, true, 1)->all();
-        codecept_debug(Menu::find()->parents($menu111->id, true, 1)->createCommand()->getRawSql());
-        codecept_debug(ArrayHelper::map($parents, 'id', 'title'));
         $I->assertCount(2, $parents);
         $I->assertEquals($menu11->id, $parents[0]->id);
         $I->assertEquals($menu111->id, $parents[1]->id);
 
         // withChild = false, depth = 1
-        /*$parents = Menu::find()->parents($menu111->id, false, 1)->all();
-        $I->assertCount(1, $parents);;
-        $I->assertEquals($menu111->id, $parents[0]->id);
+        $parents = Menu::find()->parents($menu111->id, false, 1)->all();
+        $I->assertCount(1, $parents);
+        $I->assertEquals($menu11->id, $parents[0]->id);
 
-        // withChild = true, depth = 4
+        // withChild = true, depth = 4, owner level = 3, depth is greater than the minimum level
         $parents = Menu::find()->parents($menu111->id, true, 4)->all();
-        $I->assertCount(3, $parents);;
+        $I->assertCount(3, $parents);
         $I->assertEquals($menu1->id, $parents[0]->id);
         $I->assertEquals($menu11->id, $parents[1]->id);
-        $I->assertEquals($menu111->id, $parents[2]->id);*/
+        $I->assertEquals($menu111->id, $parents[2]->id);
+
+        // withChild = false, depth = 4, owner level = 3, depth is greater than the minimum level
+        $parents = Menu::find()->parents($menu111->id, false, 4)->all();
+        $I->assertCount(2, $parents);
+        $I->assertEquals($menu1->id, $parents[0]->id);
+        $I->assertEquals($menu11->id, $parents[1]->id);
+    }
+
+    /**
+     * Test get parents, if depth negative number.
+     *
+     * @param FunctionalTester $I
+     */
+    public function getParentsExceptionIfDepthNegativeNumberTest(FunctionalTester $I): void
+    {
+        $I->expectThrowable(
+            LogicException::class,
+            function () {
+                Menu::find()->parents(1, false, -1)->all();
+            }
+        );
     }
 
     /**
@@ -191,6 +210,21 @@ class ClosureTableQueryBehaviorCest
         $I->assertEquals($menu11->id, $childs[0]->id);
         $I->assertEquals($menu111->id, $childs[1]->id);
         $I->assertEquals($menu1111->id, $childs[2]->id);
+    }
+
+    /**
+     * Test get childs, if depth negative number.
+     *
+     * @param FunctionalTester $I
+     */
+    public function getChildsExceptionIfDepthNegativeNumberTest(FunctionalTester $I): void
+    {
+        $I->expectThrowable(
+            LogicException::class,
+            function () {
+                Menu::find()->childs(1, false, -1)->all();
+            }
+        );
     }
 
     /**
