@@ -9,6 +9,7 @@ use yii\base\Behavior;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\db\ActiveRecord;
+use yii\helpers\ArrayHelper;
 
 /**
  * @package kittools\closuretable\components\behaviors
@@ -225,9 +226,11 @@ class ClosureTableBehavior extends Behavior
     {
         if ($this->oldParentId != $this->owner->getAttribute($this->ownerParentIdAttribute)) {
             $childs = $this->getChilds();
+            $this->removeTreePathByIds($this->owner->id);
             $this->rebuildTreePath();
 
             if ($childs) {
+                $this->removeTreePathByIds(ArrayHelper::map($childs, 'id', 'id'));
                 foreach ($childs as $child) {
                     $child->rebuildTreePath();
                 }
@@ -255,19 +258,21 @@ class ClosureTableBehavior extends Behavior
      */
     public function rebuildTreePath(): void
     {
-        $this->deleteTreePath();
         $this->addTreePathsOwnerToParents();
         $this->addTreePathsOwnerToOwner();
     }
 
     /**
-     * Remove tree path for owner.
+     * Remove tree path by ids.
      */
-    protected function deleteTreePath(): void
+    /**
+     * @param array|int $ids
+     */
+    protected function removeTreePathByIds($ids): void
     {
         $this->treePathModelClass::deleteAll(
             [
-                'child_id' => $this->owner->id,
+                'child_id' => $ids,
             ]
         );
     }
