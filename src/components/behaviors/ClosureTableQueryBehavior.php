@@ -55,7 +55,7 @@ class ClosureTableQueryBehavior extends Behavior
             $this->depthCheck($depth);
             /** @var self $subQuery */
             $subQuery = ($this->owner->modelClass::find())
-                ->select(new Expression('treePathsOwner.child_level + :depth', [':depth' => $depth]))
+                ->select(new Expression('treePathOwner.child_level + :depth', [':depth' => $depth]))
                 ->owner($ownerId);
 
             $this->owner
@@ -96,7 +96,7 @@ class ClosureTableQueryBehavior extends Behavior
             $subQuery = ($this->owner->modelClass::find())
                 ->select(
                     new Expression(
-                        'IF(treePathsOwner.child_level <= :depth, 1, treePathsOwner.child_level - :depth)',
+                        'IF(treePathOwner.child_level <= :depth, 1, treePathOwner.child_level - :depth)',
                         [':depth' => $depth]
                     )
                 )
@@ -162,8 +162,8 @@ class ClosureTableQueryBehavior extends Behavior
     public function owner(int $ownerId, bool $eagerLoading = false): ActiveQuery
     {
         return $this->owner
-            ->innerJoinWith('treePathsOwner treePathsOwner', $eagerLoading)
-            ->andWhere(['treePathsOwner.parent_id' => $ownerId])
-            ->andWhere(['treePathsOwner.child_id' => $ownerId]);
+            ->innerJoinWith('treePathOwner treePathOwner', $eagerLoading)
+            ->andWhere(['treePathOwner.parent_id' => $ownerId])
+            ->andWhere(['treePathOwner.child_id' => $ownerId]);
     }
 }

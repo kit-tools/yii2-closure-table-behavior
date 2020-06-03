@@ -12,6 +12,11 @@ use yii\db\ActiveRecord;
  * @property string $title
  * @property int $parent_id
  *
+ * @property MenuTreePath $treePathOwner
+ * @property MenuTreePath $treePathsChild
+ * @property MenuTreePath $treePathsNearestParent
+ * @property MenuTreePath $treePathsParent
+ *
  * @mixin ClosureTableBehavior
  *
  * @package tests\models
@@ -55,9 +60,9 @@ class Menu extends ActiveRecord
     /**
      * @return ActiveQuery
      */
-    public function getTreePathsOwner(): ActiveQuery
+    public function getTreePathOwner(): ActiveQuery
     {
-        return $this->hasMany(MenuTreePath::class, ['parent_id' => 'id', 'child_id' => 'id']);
+        return $this->hasOne(MenuTreePath::class, ['parent_id' => 'id', 'child_id' => 'id']);
     }
 
     /**

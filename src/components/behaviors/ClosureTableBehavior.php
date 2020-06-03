@@ -63,9 +63,9 @@ class ClosureTableBehavior extends Behavior
     public function afterInsert(): void
     {
         if ($this->owner->getAttribute($this->ownerParentIdAttribute)) {
-            $this->addTreePathsOwnerToParents();
+            $this->addTreePathOwnerToParents();
         }
-        $this->addTreePathsOwnerToOwner();
+        $this->addTreePathOwnerToOwner();
     }
 
     /**
@@ -73,7 +73,7 @@ class ClosureTableBehavior extends Behavior
      *
      * @throws InvalidConfigException
      */
-    protected function addTreePathsOwnerToParents(): void
+    protected function addTreePathOwnerToParents(): void
     {
         foreach ($this->getTreePathParents() as $treePath) {
             $this->saveTreePathModel(
@@ -148,7 +148,7 @@ class ClosureTableBehavior extends Behavior
      *
      * @throws InvalidConfigException
      */
-    protected function addTreePathsOwnerToOwner(): void
+    protected function addTreePathOwnerToOwner(): void
     {
         $parentLevel = $this->getParentLevel();
         $this->saveTreePathModel(
@@ -258,8 +258,8 @@ class ClosureTableBehavior extends Behavior
      */
     public function rebuildTreePath(): void
     {
-        $this->addTreePathsOwnerToParents();
-        $this->addTreePathsOwnerToOwner();
+        $this->addTreePathOwnerToParents();
+        $this->addTreePathOwnerToOwner();
     }
 
     /**
