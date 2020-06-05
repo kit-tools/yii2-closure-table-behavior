@@ -33,8 +33,9 @@ class ClosureTableQueryBehavior extends Behavior
      * All childs to owner.
      *
      * @param int $ownerId
-     * @param bool $withParent
-     * @param bool $eagerLoading
+     * @param bool|false $withParent
+     * @param int|null $depth
+     * @param bool|false $eagerLoading
      * @return ActiveQuery
      */
     public function childs(

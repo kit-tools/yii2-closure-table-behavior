@@ -8,6 +8,7 @@ use Yii;
 use yii\base\Behavior;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 
@@ -195,7 +196,7 @@ class ClosureTableBehavior extends Behavior
     }
 
     /**
-     * Verifies that the parent has a child
+     * Verifies that the parent has a child.
      *
      * @return bool
      */
@@ -225,7 +226,7 @@ class ClosureTableBehavior extends Behavior
     public function afterUpdate(): void
     {
         if ($this->oldParentId != $this->owner->getAttribute($this->ownerParentIdAttribute)) {
-            $childs = $this->getChilds();
+            $childs = $this->childs()->all();
             $this->removeTreePathByIds($this->owner->id);
             $this->rebuildTreePath();
 
@@ -241,14 +242,16 @@ class ClosureTableBehavior extends Behavior
     /**
      * Get all owner children.
      *
-     * @return array
+     * @param bool|false $withParent
+     * @param int|null $depth
+     * @param bool|false $eagerLoading
+     * @return ActiveQuery
      */
-    protected function getChilds(): array
+    public function childs(?int $depth = null, bool $withParent = false, bool $eagerLoading = false): ActiveQuery
     {
         return $this->owner::find()
-            ->childs($this->owner->id)
-            ->orderBy(['treePathsChild.child_level' => SORT_ASC])
-            ->all();
+            ->childs($this->owner->id, $withParent, $depth, $eagerLoading)
+            ->orderBy(['treePathsChild.child_level' => SORT_ASC]);
     }
 
     /**
