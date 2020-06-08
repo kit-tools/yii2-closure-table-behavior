@@ -186,7 +186,7 @@ class ClosureTableBehavior extends Behavior
      */
     public function beforeUpdate(): void
     {
-        $this->oldParentId = $this->owner->oldAttributes['parent_id'] ?? null;
+        $this->oldParentId = $this->owner->oldAttributes[$this->ownerParentIdAttribute] ?? null;
 
         if ($this->owner->getAttribute($this->ownerParentIdAttribute) !== null) {
             if ($this->hasChilds()) {
