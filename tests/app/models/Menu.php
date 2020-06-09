@@ -40,7 +40,7 @@ class Menu extends ActiveRecord
     public function behaviors(): array
     {
         return [
-            [
+            'treePath' => [
                 'class' => ClosureTableBehavior::class,
                 'treePathModelClass' => MenuTreePath::class,
                 'ownerParentIdAttribute' => 'parent_id',

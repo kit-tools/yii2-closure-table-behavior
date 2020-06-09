@@ -3,6 +3,7 @@
 namespace tests\functional\components\behaviors;
 
 use Exception;
+use kittools\closuretable\components\behaviors\ClosureTableBehavior;
 use tests\app\models\Menu;
 use tests\app\models\MenuTreePath;
 use tests\FunctionalTester;
@@ -489,6 +490,73 @@ class ClosureTableBehaviorCest
 
                 $menu1->delete();
             }
+        );
+    }
+
+    /**
+     * Test removes the owner by first moving the children under the owner’s parent.
+     *
+     * @param FunctionalTester $I
+     * @throws StaleObjectException
+     * @throws Throwable
+     */
+    public function removesTheOwnerByFirstMovingTheChildrenUnderTheOwnersParentTest(FunctionalTester $I): void
+    {
+        $menu1 = new Menu();
+        $menu1->title = 'menu 1';
+        $menu1->save();
+
+        $menu11 = new Menu();
+        $menu11->title = 'menu 1.1';
+        $menu11->parent_id = $menu1->id;
+        $menu11->save();
+
+        $menu111 = new Menu();
+        $menu111->title = 'menu 1.1.1';
+        $menu111->parent_id = $menu11->id;
+        $menu111->save();
+
+        $menu112 = new Menu();
+        $menu112->title = 'menu 1.1.2';
+        $menu112->parent_id = $menu11->id;
+        $menu112->save();
+
+        /** @var ClosureTableBehavior $behavior */
+        $behavior = $menu11->getBehavior('treePath');
+        $behavior->deletionType = ClosureTableBehavior::DELETION_TYPE_1;
+
+        $I->seeNumRecords(
+            1,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu11->id, 'child_id' => $menu111->id, 'child_level' => 3]
+        );
+        $I->seeNumRecords(
+            1,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu11->id, 'child_id' => $menu112->id, 'child_level' => 3]
+        );
+
+        $menu11->delete();
+
+        $I->seeNumRecords(
+            0,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu11->id, 'child_id' => $menu111->id, 'child_level' => 3]
+        );
+        $I->seeNumRecords(
+            0,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu11->id, 'child_id' => $menu112->id, 'child_level' => 3]
+        );
+        $I->seeNumRecords(
+            1,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu1->id, 'child_id' => $menu111->id, 'child_level' => 2]
+        );
+        $I->seeNumRecords(
+            1,
+            MenuTreePath::tableName(),
+            ['parent_id' => $menu1->id, 'child_id' => $menu112->id, 'child_level' => 2]
         );
     }
 }

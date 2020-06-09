@@ -19,11 +19,20 @@ use yii\helpers\ArrayHelper;
  */
 class ClosureTableBehavior extends Behavior
 {
+    /** @var int the default deletion type does not delete the owner if there are children */
+    public const DELETION_TYPE_0 = 0;
+
+    /** @var int removes the owner by first moving the children under the owner’s parent */
+    public const DELETION_TYPE_1 = 1;
+
     /** @var string name of the class that is responsible for the nesting tree */
     public $treePathModelClass;
 
     /** @var string field name to save the parent */
     public $ownerParentIdAttribute = 'parent_id';
+
+    /** @var int owner deletion type. It is set from constants self::DELETION_TYPE_* */
+    public $deletionType = self::DELETION_TYPE_0;
 
     /** @var int|null old parent id */
     protected $oldParentId;
@@ -215,8 +224,38 @@ class ClosureTableBehavior extends Behavior
      */
     public function beforeDelete(): void
     {
-        if ($this->owner::find()->childs($this->owner->id)->count()) {
+        switch ($this->deletionType) {
+            case self::DELETION_TYPE_1:
+                $this->deletionType1();
+                break;
+            case self::DELETION_TYPE_0:
+            default:
+                $this->deletionType0();
+                break;
+        }
+    }
+
+    /**
+     * The default deletion type does not delete the owner if there are children.
+     */
+    protected function deletionType0(): void
+    {
+        if ($this->childs()->count()) {
             throw new LogicException('You can’t delete the owner, he has childs.');
+        }
+    }
+
+    /**
+     * Removes the owner by first moving the children under the owner’s parent.
+     */
+    protected function deletionType1(): void
+    {
+        foreach ($this->childs(1)->all() as $child) {
+            $child->setAttribute(
+                $this->ownerParentIdAttribute,
+                $this->owner->getAttribute($this->ownerParentIdAttribute)
+            );
+            $child->save();
         }
     }
 
