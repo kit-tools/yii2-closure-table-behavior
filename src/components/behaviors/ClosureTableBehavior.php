@@ -132,7 +132,7 @@ class ClosureTableBehavior extends Behavior
         ?int $parentLevel,
         int $childLevel
     ): bool {
-        $model = $this->createTreePathModelObject();
+        $model = $this->addTreePathModelObject();
         $model->parent_id = $parentId;
         $model->child_id = $childId;
         $model->nearest_parent_id = $nearestParentId;
@@ -148,7 +148,7 @@ class ClosureTableBehavior extends Behavior
      * @return AbstractTreePath
      * @throws InvalidConfigException
      */
-    protected function createTreePathModelObject(): AbstractTreePath
+    protected function addTreePathModelObject(): AbstractTreePath
     {
         return Yii::createObject($this->treePathModelClass);
     }
@@ -265,16 +265,7 @@ class ClosureTableBehavior extends Behavior
     public function afterUpdate(): void
     {
         if ($this->oldParentId != $this->owner->getAttribute($this->ownerParentIdAttribute)) {
-            $childs = $this->childs()->all();
-            $this->removeTreePathByIds($this->owner->id);
-            $this->rebuildTreePath();
-
-            if ($childs) {
-                $this->removeTreePathByIds(ArrayHelper::map($childs, 'id', 'id'));
-                foreach ($childs as $child) {
-                    $child->rebuildTreePath();
-                }
-            }
+            $this->rebuildTrePath();
         }
     }
 
@@ -294,14 +285,33 @@ class ClosureTableBehavior extends Behavior
     }
 
     /**
+     * Add tree path.
+     *
+     * @throws InvalidConfigException
+     */
+    public function addTreePath(): void
+    {
+        $this->addTreePathOwnerToParents();
+        $this->addTreePathOwnerToOwner();
+    }
+
+    /**
      * Rebuild tree path.
      *
      * @throws InvalidConfigException
      */
-    public function rebuildTreePath(): void
+    public function rebuildTrePath(): void
     {
-        $this->addTreePathOwnerToParents();
-        $this->addTreePathOwnerToOwner();
+        $childs = $this->childs()->all();
+        $this->removeTreePathByIds($this->owner->id);
+        $this->addTreePath();
+
+        if ($childs) {
+            $this->removeTreePathByIds(ArrayHelper::map($childs, 'id', 'id'));
+            foreach ($childs as $child) {
+                $child->addTreePath();
+            }
+        }
     }
 
     /**
