@@ -267,7 +267,7 @@ class ClosureTableBehavior extends Behavior
     public function afterUpdate(): void
     {
         if ($this->oldParentId != $this->owner->getAttribute($this->ownerParentIdAttribute)) {
-            $this->rebuildTrePath();
+            $this->rebuildTreePath();
         }
     }
 
@@ -302,7 +302,7 @@ class ClosureTableBehavior extends Behavior
      *
      * @throws InvalidConfigException
      */
-    public function rebuildTrePath(): void
+    public function rebuildTreePath(): void
     {
         $childs = $this->childs()->all();
         $this->removeTreePathByIds($this->owner->id);
