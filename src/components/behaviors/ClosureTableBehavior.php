@@ -243,6 +243,7 @@ class ClosureTableBehavior extends Behavior
         if ($this->childs()->count()) {
             throw new LogicException('You can’t delete the owner, he has childs.');
         }
+        $this->removeTreePathByIds($this->owner->id);
     }
 
     /**
@@ -257,6 +258,7 @@ class ClosureTableBehavior extends Behavior
             );
             $child->save();
         }
+        $this->removeTreePathByIds($this->owner->id);
     }
 
     /**
